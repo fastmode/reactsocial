@@ -12,15 +12,32 @@ export default class Facebook extends Component {
   }
 
   responseFacebook = response => {
-    console.log(response);
-    console.log(response.posts.data);
+
+    let messageArray = [];
+    let wordsAPIPayload = []
+
+    // Iterate through response messages(posts)
+    response.posts.data.forEach(function (item) {
+      // console.log(key);
+      // console.log(item.message);
+      if(item.message !== undefined) {
+        messageArray.push(item.message);
+        let words = item.message.split(' ');
+        wordsAPIPayload.push(...words);
+      }
+    })
+
+    console.log("messageArray", messageArray);
+    console.log("wordsAPIPayload", wordsAPIPayload);
+
+    // Add response to state
     this.setState({
       isLoggedIn: true,
       userID: response.userID,
       name: response.name,
       email: response.email,
       picture: response.picture.data.url,
-      messageArray: response.posts.data
+      messageArray: messageArray
     })
   }
 
@@ -28,34 +45,35 @@ export default class Facebook extends Component {
 
   render() {
     let fbContent;
-    let messageArray = [];
 
-    const messages = this.state.messageArray;
-
-    console.log('Messages', messages);
+    const { picture, name, email, messageArray} = this.state;
 
     if(this.state.isLoggedIn) {
       fbContent = (
-        <div style={{
-          width: '400px',
-          margin: 'auto',
-          padding: '20px'
-        }}>
-          <img src={this.state.picture} alt={this.state.name} />
-          <h2>Welcome {this.state.name}</h2>
-          Email: {this.state.email}
+        <div>
+          <img src={picture} alt={name} />
+          <h2>Welcome {name}</h2>
+          Email: {email}
           <h2>Messages</h2> 
-          
+          <div className="message">
+            {messageArray.map((message, index) =>
+              <p key={index}>{message}</p>
+            )}
+          </div>
         </div>
       );
     } else {
-      fbContent = (<FacebookLogin
-        appId="269599393990102"
-        autoLoad={true}
-        fields="name,email,picture,posts{message}"
-        onClick={this.componentClicked}
-        callback={this.responseFacebook} />)
+      fbContent = (
+        <FacebookLogin
+          appId="269599393990102"
+          autoLoad={true}
+          fields="name,email,picture,posts{message}"
+          onClick={this.componentClicked}
+          callback={this.responseFacebook}
+        />
+      )
     }
+
     return (
       <div>
         {fbContent}
